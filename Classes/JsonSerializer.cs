@@ -1,11 +1,7 @@
 ﻿using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Quiz.WindowsForms
 {
@@ -13,20 +9,23 @@ namespace Quiz.WindowsForms
     {
         public IEnumerable<T> Deserialize<T>(string fileName)
         {
-            StreamReader stream = new StreamReader(fileName);
-            string content = stream.ReadToEnd();
-            var result = JsonConvert.DeserializeObject<IEnumerable<T>>(content);
-            stream.Close();
-            return result;
+            using (StreamReader stream = new StreamReader(fileName))
+            {
+                string content = stream.ReadToEnd();
+                var result = JsonConvert.DeserializeObject<IEnumerable<T>>(content);
+                return result;
+            }
         }
 
         public void Serialize(string fileName, object item)
         {
             Regex pattern = new Regex("]$");
+            string content;
 
-            StreamReader streamRead = new StreamReader(fileName);
-            string content = streamRead.ReadToEnd();
-            streamRead.Close();
+            using (StreamReader streamRead = new StreamReader(fileName))
+            {
+                content = streamRead.ReadToEnd();
+            }
 
             if (!string.IsNullOrEmpty(content))
             {
@@ -37,16 +36,15 @@ namespace Quiz.WindowsForms
                 content += "[\n";
             }
 
-
-            StreamWriter streamWrite = new StreamWriter(fileName, false);
-            //false - results overwrite text
-            
-            //StreamWriter streamWrite = new StreamWriter(fileName, true);
             // true - results append text
-
-            content += JsonConvert.SerializeObject(item, Formatting.Indented) + "\n]";
-            streamWrite.Write(content);
-            streamWrite.Close();
+            //StreamWriter streamWrite = new StreamWriter(fileName, true);
+            
+            //false - results overwrite text
+            using (StreamWriter streamWrite = new StreamWriter(fileName, false))
+            {
+                content += JsonConvert.SerializeObject(item, Formatting.Indented) + "\n]";
+                streamWrite.Write(content);
+            }
         }
     }
 }
